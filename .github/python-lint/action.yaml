@@ -1,0 +1,44 @@
+name: 'Python Lint Action'
+description: 'Runs pylint on the codebase'
+inputs:
+  SCA_SOURCES:
+    description: 'Sources to scan'
+    required: true
+#     default: 'World'
+# outputs:
+#   random-number:
+#     description: "Random number"
+#     value: ${{ steps.random-number-generator.outputs.random-number }}
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v3
+    - run: pip install --no-cache-dir pylint pylint-gitlab
+      shell: bash
+    - run: mkdir ./sca
+      shell: bash
+    - name: Run pylint
+      run: |
+        pylint --exit-zero --score=y --reports=y --output-format=text \
+            ${SCA_SOURCES} | tee ./sca/pylint-report.txt
+        sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' \
+            ./sca/pylint-report.txt > ./sca/pylint-score.txt
+        pylint --exit-zero --output-format=parseable \
+            ${SCA_SOURCES} | tee ./sca/pylint-parseable.txt
+        pylint --exit-zero --load-plugins=pylint_gitlab --output-format=gitlab-codeclimate \
+            ${SCA_SOURCES} > ./sca/codequality-report.json
+      shell: bash
+    - name: Generate pylint badge
+      run: |
+        pip install anybadge
+        anybadge --overwrite --label pylint \
+            --value=$(cat ./sca/pylint-score.txt) \
+            --file=./sca/pylint-score.svg \
+            4=red 6=orange 8=yellow 10=green
+      shell: bash
+    - name: Upload pylint reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: pylint-reports
+        path: ./sca
