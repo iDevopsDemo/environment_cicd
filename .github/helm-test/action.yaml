@@ -1,5 +1,9 @@
 name: 'Helm Test Action'
 description: 'Performs linting and testing of Helm charts'
+inputs:
+  GITHUB_TOKEN:
+    description: 'GitHub Token'
+    required: true
 runs:
   using: "composite"
   steps:
@@ -55,7 +59,7 @@ runs:
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ inputs.GITHUB_TOKEN }}
 
     - name: Load images into kind
       if: steps.list-changed.outputs.changed == 'true'
