@@ -1,6 +1,10 @@
 name: 'Helm Package and Publish Action'
 description: 'Packages and publishes Helm charts to GitHub Container Registry'
 inputs:
+  CHART_DIR:
+    description: 'Directory containing Helm charts'
+    required: false
+    default: 'charts'
   GITHUB_TOKEN:
     description: 'GitHub Token'
     required: true
@@ -44,12 +48,12 @@ runs:
         VERSION=${{ steps.version.outputs.version }}
 
         # Update Chart.yaml versions to match the coordinated release
-        sed -i "s/^version: .*/version: \"$VERSION\"/" charts/Chart.yaml
+        sed -i "s/^version: .*/version: \"$VERSION\"/" ${{ inputs.CHART_DIR }}/Chart.yaml
         # Update Chart.yaml appVersion to match the Docker image we just built
-        sed -i "s/^appVersion: .*/appVersion: \"$VERSION\"/" charts/Chart.yaml
+        sed -i "s/^appVersion: .*/appVersion: \"$VERSION\"/" ${{ inputs.CHART_DIR }}/Chart.yaml
 
         # Update values.yaml image tag to reference the Docker image we just built
-        sed -i "s/tag: \".*\"/tag: \"$VERSION\"/" charts/values.yaml
+        sed -i "s/tag: \".*\"/tag: \"$VERSION\"/" ${{ inputs.CHART_DIR }}/values.yaml
 
         echo "Updated chart to reference Docker image: ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}:${{ steps.version.outputs.version }}"
       shell: bash
@@ -59,7 +63,7 @@ runs:
 
     - name: Log in to GitHub Container Registry for Helm
       run: |
-        helm registry login ghcr.io -u ${{ github.actor }} --password-stdin <<< "${{ secrets.GHCR_TOKEN }}"
+        helm registry login ghcr.io -u ${{ github.actor }} --password-stdin <<< "${{ inputs.GITHUB_TOKEN }}"
       env:
         HELM_EXPERIMENTAL_OCI: 1
       shell: bash
@@ -67,12 +71,15 @@ runs:
     - name: Package and push Helm chart
       run: |
         VERSION=${{ steps.version.outputs.version }}
+        CHART_NAME=$(yq e '.name' ${{ inputs.CHART_DIR }}/Chart.yaml)
 
         # Package the chart with coordinated version
-        helm package charts/ --version $VERSION --app-version $VERSION
+        helm package ${{ inputs.CHART_DIR }}/ --version $VERSION --app-version $VERSION
 
         # Push versioned chart to GHCR as OCI artifact
-        helm push dot-ai-$VERSION.tgz oci://ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}/charts
+        helm push $CHART_NAME-$VERSION.tgz oci://ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}/charts
 
-        echo "Published Helm chart: oci://ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}/charts/dot-ai:$VERSION"
+        echo "Published Helm chart: oci://ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}/charts/$CHART_NAME:$VERSION"
+      env:
+        HELM_EXPERIMENTAL_OCI: 1
       shell: bash
