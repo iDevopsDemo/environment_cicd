@@ -40,6 +40,7 @@ runs:
     - name: Update Chart.yaml and values.yaml versions
       run: |
         VERSION=${{ steps.version.outputs.version }}
+        IMAGE_NAME=$(yq e '.image.repository' ${{ inputs.CHART_DIR }}/values.yaml)
 
         # Update Chart.yaml versions to match the coordinated release
         sed -i "s/^version: .*/version: \"$VERSION\"/" ${{ inputs.CHART_DIR }}/Chart.yaml
@@ -49,7 +50,7 @@ runs:
         # Update values.yaml image tag to reference the Docker image we just built
         sed -i "s/tag: \".*\"/tag: \"$VERSION\"/" ${{ inputs.CHART_DIR }}/values.yaml
 
-        echo "Updated chart to reference Docker image: ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}:${{ steps.version.outputs.version }}"
+        echo "Updated chart to reference Docker image: $IMAGE_NAME:$VERSION"
       shell: bash
 
     - name: Set up Helm
@@ -71,9 +72,9 @@ runs:
         helm package ${{ inputs.CHART_DIR }}/ --version $VERSION --app-version $VERSION
 
         # Push versioned chart to GHCR as OCI artifact
-        helm push $CHART_NAME-$VERSION.tgz oci://ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}/charts
+        helm push $CHART_NAME-$VERSION.tgz oci://ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts
 
-        echo "Published Helm chart: oci://ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}/charts/$CHART_NAME:$VERSION"
+        echo "Published Helm chart: oci://ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts/$CHART_NAME:$VERSION"
       env:
         HELM_EXPERIMENTAL_OCI: 1
       shell: bash
