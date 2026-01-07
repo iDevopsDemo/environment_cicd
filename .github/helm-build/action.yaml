@@ -36,13 +36,7 @@ runs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ inputs.GITHUB_TOKEN }}
-
-    - name: Build and push
-      uses: docker/build-push-action@v6
-      with:
-        push: true
-        tags: "ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}:${{ steps.version.outputs.version }}"
-    
+   
     - name: Update Chart.yaml and values.yaml versions
       run: |
         VERSION=${{ steps.version.outputs.version }}
