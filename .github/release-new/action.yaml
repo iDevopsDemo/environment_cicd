@@ -1,0 +1,68 @@
+name: 'Release Action'
+description: 'Automatically bumping the minor version, creating a git tag and pushing it to the repository'
+inputs:
+  GITHUB_TOKEN:
+    description: 'GitHub Token'
+    required: true
+outputs:
+  new_tag:
+    description: "New Tag"
+    value: ${{ steps.tagging.outputs.new_tag }}
+  old_tag:
+    description: "Old Tag"
+    value: ${{ steps.tagging.outputs.old_tag }}
+  tag:
+    description: "The value of the latest tag after running this action"
+    value: ${{ steps.tagging.outputs.tag }}
+  part:
+    description: "The part of version which was bumped"
+    value: ${{ steps.tagging.outputs.part }}
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+
+    - name: Bump version and push tag
+      id: tagging
+      uses: anothrNick/github-tag-action@v1 # Don't use @master or @v1 unless you're happy to test the latest version
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        DEFAULT_BUMP: "none"
+
+    - name: Git Version
+      if: steps.tagging.outputs.new_tag != steps.tagging.outputs.old_tag
+      id: version
+      uses: codacy/git-version@2.8.6
+
+    - id: repo-name-lowercase
+      if: steps.tagging.outputs.new_tag != steps.tagging.outputs.old_tag
+      name: Convert repository owner to lowercase
+      uses: ASzc/change-string-case-action@v2
+      with:
+        string: "${{ github.repository_owner }}"
+
+    - uses: imjasonh/setup-crane@v0.1
+      if: steps.tagging.outputs.new_tag != steps.tagging.outputs.old_tag
+
+    - name: Login to GitHub Container Registry
+      if: steps.tagging.outputs.new_tag != steps.tagging.outputs.old_tag
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ inputs.GITHUB_TOKEN }}
+
+    - name: retag-image
+      if: steps.tagging.outputs.new_tag != steps.tagging.outputs.old_tag
+      run: |
+        echo "Promoting image for ${{ env.COMP_NAME }}"
+        crane auth login -u ${{ github.actor }} -p ${{ inputs.GITHUB_TOKEN }} ghcr.io
+        crane tag ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}:${{ inputs.BUILD_VERSION }} ${{ steps.version.outputs.version }}
+        if: [ -n "${{ inputs.CHART_NAME }}" ]; then
+          echo "Also promoting Helm chart for ${{ inputs.CHART_NAME }}"
+          crane tag ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts/${{ inputs.CHART_NAME }}:${{ inputs.BUILD_VERSION }} ${{ steps.version.outputs.version }}
+        fi
+      shell: bash
+        
