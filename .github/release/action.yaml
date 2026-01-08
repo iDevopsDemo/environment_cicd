@@ -1,1 +1,26 @@
-# Too simple for now
+name: 'Release Action'
+description: 'Automatically bumping the minor version, creating a git tag and pushing it to the repository'
+inputs:
+  GITHUB_TOKEN:
+    description: 'GitHub Token'
+    required: true
+outputs:
+  tagging:
+    description: "New Tag"
+    value: ${{ steps.tagging.new_tag }}
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Bump version and push tag
+      id: tagging
+      uses: anothrNick/github-tag-action@v1 # Don't use @master or @v1 unless you're happy to test the latest version
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        
