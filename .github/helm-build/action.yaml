@@ -29,13 +29,6 @@ runs:
     - name: Git Version
       id: version
       uses: codacy/git-version@2.8.6
-
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ inputs.GITHUB_TOKEN }}
    
     - name: Update Chart.yaml and values.yaml versions
       run: |
@@ -48,7 +41,7 @@ runs:
         sed -i "s/^appVersion: .*/appVersion: \"$VERSION\"/" ${{ inputs.CHART_DIR }}/Chart.yaml
 
         # Update values.yaml image tag to reference the Docker image we just built
-        sed -i "s/tag: \".*\"/tag: \"$VERSION\"/" ${{ inputs.CHART_DIR }}/values.yaml
+        sed -i "s/tag: .*/tag: \"$VERSION\"/" ${{ inputs.CHART_DIR }}/values.yaml
 
         echo "Updated chart to reference Docker image: $IMAGE_NAME:$VERSION"
       shell: bash
