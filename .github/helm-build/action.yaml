@@ -12,9 +12,9 @@ outputs:
   build-version:
     description: "Build version"
     value: ${{ steps.version.outputs.version }}
-  helm-name:
+  chart-name:
     description: "Helm Chart Name"
-    value: ${{ steps.helm-chart.outputs.CHART_NAME }}
+    value: ${{ steps.helm-chart.outputs.chart-name }}
 runs:
   using: "composite"
   steps:
@@ -72,7 +72,7 @@ runs:
         helm push $CHART_NAME-$VERSION.tgz oci://ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts
 
         echo "Published Helm chart: oci://ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts/$CHART_NAME:$VERSION"
-        echo "helm-name=$CHART_NAME" >> "$GITHUB_OUTPUT"
+        echo "chart-name=$CHART_NAME" >> "$GITHUB_OUTPUT"
       env:
         HELM_EXPERIMENTAL_OCI: 1
       shell: bash
