@@ -4,6 +4,16 @@ inputs:
   COMP_NAME:
     description: 'Component Name'
     required: true
+  CHART_NAME:
+    description: 'Helm Chart Name'
+    required: false
+    default: ''
+  BUILD_VERSION:
+    description: 'Build Version'
+    required: true
+  GITHUB_TOKEN:
+    description: 'GitHub Token'
+    required: true
 runs:
   using: "composite"
   steps:
@@ -26,13 +36,17 @@ runs:
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ inputs.GITHUB_TOKEN }}
 
     - name: promote-image
       run: |
         CALCULATED_RELEASE_VERSION=$(get_release_version)
         echo "CALCULATED_RELEASE_VERSION=${CALCULATED_RELEASE_VERSION}"
         echo "Promoting image for ${{ env.COMP_NAME }}"
-        crane auth login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
-        crane tag ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}:${{ needs.build.outputs.build-version }} ${{ steps.version.outputs.version }}
+        crane auth login -u ${{ github.actor }} -p ${{ inputs.GITHUB_TOKEN }} ghcr.io
+        crane tag ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}:${{ inputs.BUILD_VERSION }} ${{ steps.version.outputs.version }}
+        if: [ -n "${{ inputs.CHART_NAME }}" ]; then
+          echo "Also promoting Helm chart for ${{ inputs.CHART_NAME }}"
+          crane tag ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts/${{ inputs.CHART_NAME }}:${{ inputs.BUILD_VERSION }} ${{ steps.version.outputs.version }}
+        fi
       shell: bash

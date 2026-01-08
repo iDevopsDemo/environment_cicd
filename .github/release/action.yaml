@@ -5,9 +5,18 @@ inputs:
     description: 'GitHub Token'
     required: true
 outputs:
-  tagging:
+  new_tag:
     description: "New Tag"
-    value: ${{ steps.tagging.new_tag }}
+    value: ${{ steps.tagging.outputs.new_tag }}
+  old_tag:
+    description: "Old Tag"
+    value: ${{ steps.tagging.outputs.old_tag }}
+  tag:
+    description: "The value of the latest tag after running this action"
+    value: ${{ steps.tagging.outputs.tag }}
+  part:
+    description: "The part of version which was bumped"
+    value: ${{ steps.tagging.outputs.part }}
 runs:
   using: "composite"
   steps:
@@ -23,4 +32,5 @@ runs:
       uses: anothrNick/github-tag-action@v1 # Don't use @master or @v1 unless you're happy to test the latest version
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        DEFAULT_BUMP: "none"
         
