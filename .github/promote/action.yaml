@@ -39,13 +39,13 @@ runs:
 
     - name: promote-image
       run: |
-        if: [ -z "${{ inputs.TARGET_REGISTRY }}" ]; then
+        if [ -z "${{ inputs.TARGET_REGISTRY }}" ]; then
           TARGET_REGISTRY="ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}"
         fi
         echo "Promoting image for ${{ env.COMP_NAME }}"
         crane auth login -u ${{ github.actor }} -p ${{ inputs.GITHUB_TOKEN }} ghcr.io
         crane cp ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}:${{ inputs.BUILD_VERSION }} ${{ inputs.TARGET_REGISTRY }}/${{ env.COMP_NAME }}:${{ inputs.TARGET_VERSION }}
-        if: [ -n "${{ inputs.CHART_NAME }}" ]; then
+        if [ -n "${{ inputs.CHART_NAME }}" ]; then
           echo "Also promoting Helm chart for ${{ inputs.CHART_NAME }}"
           crane cp ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts/${{ inputs.CHART_NAME }}:${{ inputs.BUILD_VERSION }} ${{ inputs.TARGET_REGISTRY }}/charts/${{ inputs.CHART_NAME }}:${{ inputs.TARGET_VERSION }}
         fi
