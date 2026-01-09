@@ -1,0 +1,17 @@
+name: Change String to lowercase
+description: Make a string lowercase, uppercase, or capitalized
+inputs:
+  string:
+    description: The input string
+    required: true
+outputs:
+  lowercase:
+    description: The input string, with any uppercase characters replaced with lowercase ones
+    value: ${{ steps.lowercase.outputs.lowercase }}
+runs:
+  using: "composite"
+  steps:
+    - name: Convert to lowercase
+      id: lowercase
+      run: echo "lowercase=$(echo "${{ inputs.string }}" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+      shell: bash
