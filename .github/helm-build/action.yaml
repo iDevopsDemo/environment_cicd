@@ -20,7 +20,7 @@ runs:
   steps:
     - id: repo-name-lowercase
       name: Convert repository owner to lowercase
-      uses: ASzc/change-string-case-action@v2
+      uses: iDevopsDemo/environment_cicd/.github/lowercase@main
       with:
         string: "${{ github.repository_owner }}"
     
