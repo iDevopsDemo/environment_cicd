@@ -36,3 +36,9 @@ runs:
           .coverage
           coverage.xml
           htmlcov/
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: (!cancelled())
+      with:
+        files: |
+          pytest-junit.xml
