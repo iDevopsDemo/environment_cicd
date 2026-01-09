@@ -42,3 +42,10 @@ runs:
       with:
         files: |
           pytest-junit.xml
+    - name: Test Report
+      uses: dorny/test-reporter@v2
+      if: ${{ !cancelled() }}       # run this step even if previous step failed
+      with:
+        name: JEST Tests            # Name of the check run which will be created
+        path: pytest-junit.xml      # Path to test results
+        reporter: python-xunit      # Format of test results
