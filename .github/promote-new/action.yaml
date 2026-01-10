@@ -1,0 +1,62 @@
+name: 'Promote Action'
+description: 'Promotes a Docker image to a new version tag'
+inputs:
+  CHART_NAME:
+    description: 'Helm Chart Name'
+    required: true
+  GITHUB_TOKEN:
+    description: 'GitHub Token'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - id: repo-name-lowercase
+      name: Convert repository owner to lowercase
+      uses: iDevopsDemo/environment_cicd/.github/lowercase@main
+      with:
+        string: "${{ github.repository_owner }}"
+
+    - name: Checkout
+      uses: actions/checkout@v5.0.0
+      with:
+        fetch-depth: 0
+
+    - name: Determine Version
+      id: version_step
+      uses: iDevopsDemo/environment_cicd/.github/gitversion@main
+
+    - uses: imjasonh/setup-crane@v0.1
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ inputs.GITHUB_TOKEN }}
+
+    - name: promote-testing
+      if: ${{ github.ref != 'refs/heads/main' && github.ref_type == 'branch' }}
+      run: |
+        echo "Promoting helm chart to testing"
+        crane auth login -u ${{ github.actor }} -p ${{ inputs.GITHUB_TOKEN }} ghcr.io
+        crane cp ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts/${{ inputs.CHART_NAME }}:${{ steps.version_step.outputs.fullSemVer }} $TARGET_REGISTRY/charts/testing/${{ inputs.CHART_NAME }}:${{ steps.version_step.outputs.fullSemVer }}
+        fi
+      shell: bash
+    
+    - name: promote-prerelease
+      if: ${{ github.ref == 'refs/heads/main' }}
+      run: |
+        echo "Promoting helm chart to testing"
+        crane auth login -u ${{ github.actor }} -p ${{ inputs.GITHUB_TOKEN }} ghcr.io
+        crane cp ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts/${{ inputs.CHART_NAME }}:${{ steps.version_step.outputs.fullSemVer }} $TARGET_REGISTRY/charts/prerelease/${{ inputs.CHART_NAME }}:${{ steps.version_step.outputs.fullSemVer }}
+        fi
+      shell: bash
+
+    - name: promote-release
+      if: ${{ github.ref_type == 'tag' }}
+      run: |
+        echo "Promoting helm chart to testing"
+        crane auth login -u ${{ github.actor }} -p ${{ inputs.GITHUB_TOKEN }} ghcr.io
+        crane cp ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts/${{ inputs.CHART_NAME }}:${{ steps.version_step.outputs.fullSemVer }} $TARGET_REGISTRY/charts/release/${{ inputs.CHART_NAME }}:${{ steps.version_step.outputs.fullSemVer }}
+        fi
+      shell: bash
