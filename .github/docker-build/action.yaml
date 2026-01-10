@@ -23,10 +23,10 @@ runs:
     - uses: actions/checkout@v5
       with:
         fetch-depth: 0
-
-    - name: Git Version
-      id: version
-      uses: codacy/git-version@2.8.6
+    
+    - name: Determine Version
+      id: version_step
+      uses: iDevopsDemo/environment_cicd/.github/gitversion@main
 
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v3
@@ -42,4 +42,4 @@ runs:
       uses: docker/build-push-action@v6
       with:
         push: true
-        tags: "ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}:${{ steps.version.outputs.version }}"
+        tags: "ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}:${{ steps.version_step.outputs.fullSemVer }}"
