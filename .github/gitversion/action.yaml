@@ -1,8 +1,8 @@
 name: 'GitVersion Action'
 description: 'Determines the version of the code using GitVersion'
 outputs:
-  build-version:
-    description: "Build version"
+  fullSemVer:
+    description: "Full semantic version"
     value: ${{ steps.version_step.outputs.fullSemVer }}
 runs:
   using: "composite"
@@ -15,9 +15,9 @@ runs:
       uses: gittools/actions/gitversion/setup@v4.2.0
       with:
         versionSpec: '6.4.x'
-        includePrerelease: true
-        configFilePath: '.gitversion.yaml'
     
     - name: Determine Version
       id: version_step # step id used as a reference for output values
       uses: gittools/actions/gitversion/execute@v4.2.0
+      with:
+        configFilePath: '.gitversion.yaml'
