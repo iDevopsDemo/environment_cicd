@@ -40,7 +40,6 @@ runs:
         echo "Promoting helm chart to testing"
         crane auth login -u ${{ github.actor }} -p ${{ inputs.GITHUB_TOKEN }} ghcr.io
         crane cp ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts/${{ inputs.CHART_NAME }}:${{ steps.version_step.outputs.fullSemVer }} ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts/testing/${{ inputs.CHART_NAME }}:${{ steps.version_step.outputs.fullSemVer }}
-        fi
       shell: bash
     
     - name: promote-prerelease
@@ -49,7 +48,6 @@ runs:
         echo "Promoting helm chart to testing"
         crane auth login -u ${{ github.actor }} -p ${{ inputs.GITHUB_TOKEN }} ghcr.io
         crane cp ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts/${{ inputs.CHART_NAME }}:${{ steps.version_step.outputs.fullSemVer }} ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts/prerelease/${{ inputs.CHART_NAME }}:${{ steps.version_step.outputs.fullSemVer }}
-        fi
       shell: bash
 
     - name: promote-release
@@ -58,5 +56,4 @@ runs:
         echo "Promoting helm chart to testing"
         crane auth login -u ${{ github.actor }} -p ${{ inputs.GITHUB_TOKEN }} ghcr.io
         crane cp ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts/${{ inputs.CHART_NAME }}:${{ steps.version_step.outputs.fullSemVer }} ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts/release/${{ inputs.CHART_NAME }}:${{ steps.version_step.outputs.fullSemVer }}
-        fi
       shell: bash
