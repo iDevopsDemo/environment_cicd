@@ -3,7 +3,7 @@ description: 'Determines the version of the code using GitVersion'
 outputs:
   fullSemVer:
     description: "Full semantic version"
-    value: ${{ steps.version_step.outputs.fullSemVer }}
+    value: ${{ steps.version_step.outputs.semVer }}-${{ steps.version_step.outputs.buildMetaData }}
 runs:
   using: "composite"
   steps:
