@@ -114,7 +114,7 @@ outputs:
     value: ${{ steps.version_step.outputs.commitDate }}
   fullSemVerDocker:
     description: "Full semantic version"
-    value: ${{ steps.version_step.outputs.semVer }}-${{ steps.version_step.outputs.buildMetaData }}
+    value: ${{ steps.version_step.outputs.semVer }}-${{ steps.version_step.outputs.commitsSinceVersionSource }}
 runs:
   using: "composite"
   steps:
