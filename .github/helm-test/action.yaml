@@ -46,13 +46,24 @@ runs:
     - name: Set up chart-testing
       uses: helm/chart-testing-action@v2.8.0
 
+    - name: Run chart-testing (list-changed)
+      id: list-changed
+      run: |
+        changed=$(ct list-changed --target-branch ${{ github.event.repository.default_branch }} --config ${{ inputs.CONFIG_FILE }})
+        if [[ -n "$changed" ]]; then
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+        fi
+      shell: bash
+
     - name: Determine Version
       id: version_step
+      if: steps.list-changed.outputs.changed == 'true'
       uses: iDevopsDemo/environment_cicd/.github/gitversion@main
       with:
         configFilePath: ${{ inputs.GITVERSION_CONFIG_FILE }}
    
     - name: Update Chart.yaml and values.yaml versions
+      if: steps.list-changed.outputs.changed == 'true'
       run: |
         VERSION=${{ steps.version_step.outputs.fullSemVerDocker }}
         IMAGE_NAME=$(yq e '.image.repository' ${{ inputs.CHART_DIR }}/values.yaml)
@@ -69,15 +80,6 @@ runs:
           # Update values.yaml image tag to reference the Docker image we just built
           sed -i "s/tag: .*/tag: \"$VERSION\"/" ${{ inputs.CHART_DIR }}/values.yaml
           echo "Updated chart to reference Docker image: $IMAGE_NAME:$VERSION"
-        fi
-      shell: bash
-
-    - name: Run chart-testing (list-changed)
-      id: list-changed
-      run: |
-        changed=$(ct list-changed --target-branch ${{ github.event.repository.default_branch }} --config ${{ inputs.CONFIG_FILE }})
-        if [[ -n "$changed" ]]; then
-          echo "changed=true" >> "$GITHUB_OUTPUT"
         fi
       shell: bash
 
