@@ -48,13 +48,14 @@ runs:
         # Update Chart.yaml appVersion to match the Docker image we just built
         sed -i "s/^appVersion: .*/appVersion: \"$VERSION\"/" ${{ inputs.CHART_DIR }}/Chart.yaml
 
+        echo "Updated chart version and appVersion to: $VERSION"
+
         # Check if a Dockerfile exists to determine if we need to update image tag
         if [ -f "Dockerfile" ]; then
           # Update values.yaml image tag to reference the Docker image we just built
           sed -i "s/tag: .*/tag: \"$VERSION\"/" ${{ inputs.CHART_DIR }}/values.yaml
+          echo "Updated chart to reference Docker image: $IMAGE_NAME:$VERSION"
         fi
-
-        echo "Updated chart to reference Docker image: $IMAGE_NAME:$VERSION"
       shell: bash
 
     - name: Set up Helm
