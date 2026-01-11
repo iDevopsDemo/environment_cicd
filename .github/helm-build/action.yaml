@@ -8,10 +8,6 @@ inputs:
   GITHUB_TOKEN:
     description: 'GitHub Token'
     required: true
-  GITVERSION_TARGET_PATH:
-    description: 'Path to run GitVersion against'
-    required: false
-    default: '.'
   GITVERSION_CONFIG_FILE:
     description: 'Path to GitVersion configuration file'
     required: false
@@ -40,7 +36,6 @@ runs:
       id: version_step
       uses: iDevopsDemo/environment_cicd/.github/gitversion@main
       with:
-        targetPath: ${{ inputs.GITVERSION_TARGET_PATH }}
         configFilePath: ${{ inputs.GITVERSION_CONFIG_FILE }}
    
     - name: Update Chart.yaml and values.yaml versions
