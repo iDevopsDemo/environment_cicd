@@ -7,6 +7,10 @@ inputs:
   GITHUB_TOKEN:
     description: 'GitHub Token'
     required: true
+  GITVERSION_TARGET_PATH:
+    description: 'Path to run GitVersion against'
+    required: false
+    default: '.'
 outputs:
   build-version:
     description: "Build version"
@@ -27,6 +31,8 @@ runs:
     - name: Determine Version
       id: version_step
       uses: iDevopsDemo/environment_cicd/.github/gitversion@main
+      with:
+        targetPath: ${{ inputs.GITVERSION_TARGET_PATH }}
 
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v3
@@ -42,4 +48,4 @@ runs:
       uses: docker/build-push-action@v6
       with:
         push: true
-        tags: "ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}:${{ steps.version_step.outputs.fullSemVer }}"
+        tags: "ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/${{ env.COMP_NAME }}:${{ steps.version_step.outputs.fullSemVerDocker }}"

@@ -41,7 +41,7 @@ runs:
    
     - name: Update Chart.yaml and values.yaml versions
       run: |
-        VERSION=${{ steps.version_step.outputs.fullSemVer }}
+        VERSION=${{ steps.version_step.outputs.fullSemVerDocker }}
         IMAGE_NAME=$(yq e '.image.repository' ${{ inputs.CHART_DIR }}/values.yaml)
 
         # Update Chart.yaml versions to match the coordinated release
@@ -68,7 +68,7 @@ runs:
     - name: Package and push Helm chart
       id: helm-chart
       run: |
-        VERSION=${{ steps.version_step.outputs.fullSemVer }}
+        VERSION=${{ steps.version_step.outputs.fullSemVerDocker }}
         CHART_NAME=$(yq e '.name' ${{ inputs.CHART_DIR }}/Chart.yaml)
 
         # Package the chart with coordinated version
