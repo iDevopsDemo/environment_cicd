@@ -1,6 +1,9 @@
 name: 'Helm Test Action'
 description: 'Performs linting and testing of Helm charts'
 inputs:
+  CHART_DIR:
+    description: 'Directory of the Helm chart to test'
+    required: true
   GITHUB_TOKEN:
     description: 'GitHub Token'
     required: true
@@ -8,6 +11,9 @@ inputs:
     description: 'Path to Helm charts'
     required: false
     default: './ct.yaml'
+  GITVERSION_CONFIG_FILE:
+    description: 'Path to GitVersion configuration file'
+    required: false
 runs:
   using: "composite"
   steps:
@@ -40,6 +46,32 @@ runs:
     - name: Set up chart-testing
       uses: helm/chart-testing-action@v2.8.0
 
+    - name: Determine Version
+      id: version_step
+      uses: iDevopsDemo/environment_cicd/.github/gitversion@main
+      with:
+        configFilePath: ${{ inputs.GITVERSION_CONFIG_FILE }}
+   
+    - name: Update Chart.yaml and values.yaml versions
+      run: |
+        VERSION=${{ steps.version_step.outputs.fullSemVerDocker }}
+        IMAGE_NAME=$(yq e '.image.repository' ${{ inputs.CHART_DIR }}/values.yaml)
+
+        # Update Chart.yaml versions to match the coordinated release
+        sed -i "s/^version: .*/version: \"$VERSION\"/" ${{ inputs.CHART_DIR }}/Chart.yaml
+        # Update Chart.yaml appVersion to match the Docker image we just built
+        sed -i "s/^appVersion: .*/appVersion: \"$VERSION\"/" ${{ inputs.CHART_DIR }}/Chart.yaml
+
+        echo "Updated chart version and appVersion to: $VERSION"
+
+        # Check if a Dockerfile exists to determine if we need to update image tag
+        if [ -f "Dockerfile" ]; then
+          # Update values.yaml image tag to reference the Docker image we just built
+          sed -i "s/tag: .*/tag: \"$VERSION\"/" ${{ inputs.CHART_DIR }}/values.yaml
+          echo "Updated chart to reference Docker image: $IMAGE_NAME:$VERSION"
+        fi
+      shell: bash
+
     - name: Run chart-testing (list-changed)
       id: list-changed
       run: |
@@ -58,23 +90,23 @@ runs:
       if: steps.list-changed.outputs.changed == 'true'
       uses: helm/kind-action@v1.12.0
 
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ inputs.GITHUB_TOKEN }}
+    # - name: Login to GitHub Container Registry
+    #   uses: docker/login-action@v3
+    #   with:
+    #     registry: ghcr.io
+    #     username: ${{ github.actor }}
+    #     password: ${{ inputs.GITHUB_TOKEN }}
 
-    - name: Load images into kind
-      if: steps.list-changed.outputs.changed == 'true'
-      run: |
-        for chart in $(ct list-changed --target-branch ${{ github.event.repository.default_branch }}); do
-          image=$(yq e '.image.repository + ":" + .image.tag' "./${chart}/values.yaml")
-          docker pull "$image"
-          kubectl cluster-info --context kind-chart-testing
-          kind load docker-image "$image" --name chart-testing
-        done
-      shell: bash
+    # - name: Load images into kind
+    #   if: steps.list-changed.outputs.changed == 'true'
+    #   run: |
+    #     for chart in $(ct list-changed --target-branch ${{ github.event.repository.default_branch }}); do
+    #       image=$(yq e '.image.repository + ":" + .image.tag' "./${chart}/values.yaml")
+    #       docker pull "$image"
+    #       kubectl cluster-info --context kind-chart-testing
+    #       kind load docker-image "$image" --name chart-testing
+    #     done
+    #   shell: bash
 
     - name: Run chart-testing (install)
       if: steps.list-changed.outputs.changed == 'true'
