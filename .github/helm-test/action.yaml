@@ -4,6 +4,10 @@ inputs:
   GITHUB_TOKEN:
     description: 'GitHub Token'
     required: true
+  CONFIG_FILE:
+    description: 'Path to Helm charts'
+    required: false
+    default: './ct.yaml'
 runs:
   using: "composite"
   steps:
@@ -39,7 +43,7 @@ runs:
     - name: Run chart-testing (list-changed)
       id: list-changed
       run: |
-        changed=$(ct list-changed --target-branch ${{ github.event.repository.default_branch }})
+        changed=$(ct list-changed --target-branch ${{ github.event.repository.default_branch }} --config ${{ inputs.CONFIG_FILE }})
         if [[ -n "$changed" ]]; then
           echo "changed=true" >> "$GITHUB_OUTPUT"
         fi
@@ -47,7 +51,7 @@ runs:
 
     - name: Run chart-testing (lint)
       if: steps.list-changed.outputs.changed == 'true'
-      run: ct lint --target-branch ${{ github.event.repository.default_branch }} --config ct.yaml
+      run: ct lint --target-branch ${{ github.event.repository.default_branch }} --config ${{ inputs.CONFIG_FILE }}
       shell: bash
 
     - name: Create kind cluster
@@ -74,5 +78,5 @@ runs:
 
     - name: Run chart-testing (install)
       if: steps.list-changed.outputs.changed == 'true'
-      run: ct install --target-branch ${{ github.event.repository.default_branch }} --config ct.yaml
+      run: ct install --target-branch ${{ github.event.repository.default_branch }} --config ${{ inputs.CONFIG_FILE }}
       shell: bash
