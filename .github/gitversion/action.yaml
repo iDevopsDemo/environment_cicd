@@ -114,7 +114,7 @@ outputs:
     value: ${{ steps.version_step.outputs.commitDate }}
   fullSemVerDocker:
     description: "Full semantic version"
-    value: ${{ steps.version_step.outputs.semVer }}-${{ steps.version_step.outputs.commitsSinceVersionSource }}
+    value: ${{ steps.docker_tag_step.outputs.fullSemVerDocker }}
 runs:
   using: "composite"
   steps:
@@ -140,3 +140,9 @@ runs:
         updateAssemblyInfo: ${{ inputs.updateAssemblyInfo }}
         updateAssemblyInfoFilename: ${{ inputs.updateAssemblyInfoFilename }}
         updateProjectFiles: ${{ inputs.updateProjectFiles }}
+    
+    - name: Prepare Docker Tag Output
+      id: docker_tag_step
+      run: |
+        echo "fullSemVerDocker=$(echo ${{ steps.version_step.outputs.semVer }} | sed 's/+/-/g')" >> "$GITHUB_OUTPUT"
+      shell: bash
