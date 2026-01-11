@@ -1,7 +1,118 @@
 name: 'GitVersion Action'
 description: 'Determines the version of the code using GitVersion'
+inputs:
+  targetPath:
+    description: Optionally supply the path to the working directory
+    required: false
+    default: ''
+  disableCache:
+    description: Whether to disable GitVersion cache
+    required: false
+    default: 'false'
+  disableNormalization:
+    description: Whether to disable GitVersion normalization
+    required: false
+    default: 'false'
+  disableShallowCloneCheck:
+    description: Whether to disable the check for shallow clone
+    required: false
+    default: 'false'
+  configFilePath:
+    description: Optional path to config file (defaults to GitVersion.yml)
+    required: false
+  overrideConfig:
+    description: |
+        Optional override for the configuration file. This should be newline-separated key-value pairs, e.g.:
+        semantic-version-format=Loose
+        next-version=1.0.0
+    required: false
+    default: ''
+  updateAssemblyInfo:
+    description: Whether to update versions in the AssemblyInfo files
+    required: false
+    default: 'false'
+  updateAssemblyInfoFilename:
+    description: Update versions in specified file
+    required: false
+    default: ''
+  updateProjectFiles:
+    description: Whether to update versions in the project files
+    required: false
+    default: 'false'
 outputs:
+  major: # id of output
+    description: 'The Major value'
+    value: ${{ steps.version_step.outputs.major }}
+  minor:
+    description: 'The Minor value'
+    value: ${{ steps.version_step.outputs.minor }}
+  patch:
+    description: 'The Patch value'
+    value: ${{ steps.version_step.outputs.patch }}
+  preReleaseTag:
+    description: 'The PreReleaseTag value'
+    value: ${{ steps.version_step.outputs.preReleaseTag }}
+  preReleaseTagWithDash:
+    description: 'The PreReleaseTagWithDash value'
+    value: ${{ steps.version_step.outputs.preReleaseTagWithDash }}
+  preReleaseLabel:
+    description: 'The PreReleaseLabel value'
+    value: ${{ steps.version_step.outputs.preReleaseLabel }}
+  preReleaseNumber:
+    description: 'The PreReleaseNumber value'
+    value: ${{ steps.version_step.outputs.preReleaseNumber }}
+  weightedPreReleaseNumber:
+    description: 'The WeightedPreReleaseNumber value'
+    value: ${{ steps.version_step.outputs.weightedPreReleaseNumber }}
+  buildMetaData:
+    description: 'The BuildMetaData value'
+    value: ${{ steps.version_step.outputs.buildMetaData }}
+  fullBuildMetaData:
+    description: 'The FullBuildMetaData value'
+    value: ${{ steps.version_step.outputs.fullBuildMetaData }}
+  majorMinorPatch:
+    description: 'The MajorMinorPatch value'
+    value: ${{ steps.version_step.outputs.majorMinorPatch }}
+  semVer:
+    description: 'The SemVer value'
+    value: ${{ steps.version_step.outputs.semVer }}
+  assemblySemVer:
+    description: 'The AssemblySemVer value'
+    value: ${{ steps.version_step.outputs.assemblySemVer }}
+  assemblySemFileVer:
+    description: 'The AssemblySemFileVer value'
+    value: ${{ steps.version_step.outputs.assemblySemFileVer }}
   fullSemVer:
+    description: 'The FullSemVer value'
+    value: ${{ steps.version_step.outputs.fullSemVer }}
+  informationalVersion:
+    description: 'The InformationalVersion value'
+    value: ${{ steps.version_step.outputs.informationalVersion }}
+  branchName:
+    description: 'The BranchName value'
+    value: ${{ steps.version_step.outputs.branchName }}
+  escapedBranchName:
+    description: 'The EscapedBranchName value'
+    value: ${{ steps.version_step.outputs.escapedBranchName }}
+  sha:
+    description: 'The Sha value'
+    value: ${{ steps.version_step.outputs.sha }}
+  shortSha:
+    description: 'The ShortSha value'
+    value: ${{ steps.version_step.outputs.shortSha }}
+  versionSourceSha:
+    description: 'The VersionSourceSha value'
+    value: ${{ steps.version_step.outputs.versionSourceSha }}
+  commitsSinceVersionSource:
+    description: 'The CommitsSinceVersionSource value'
+    value: ${{ steps.version_step.outputs.commitsSinceVersionSource }}
+  uncommittedChanges:
+    description: 'The UncommittedChanges value'
+    value: ${{ steps.version_step.outputs.uncommittedChanges }}
+  commitDate:
+    description: 'The CommitDate value'
+    value: ${{ steps.version_step.outputs.commitDate }}
+  fullSemVerDocker:
     description: "Full semantic version"
     value: ${{ steps.version_step.outputs.semVer }}-${{ steps.version_step.outputs.buildMetaData }}
 runs:
@@ -20,4 +131,12 @@ runs:
       id: version_step # step id used as a reference for output values
       uses: gittools/actions/gitversion/execute@v4.2.0
       with:
-        configFilePath: '.gitversion.yaml'
+        targetPath: ${{ inputs.targetPath }}
+        disableCache: ${{ inputs.disableCache }}
+        disableNormalization: ${{ inputs.disableNormalization }}
+        disableShallowCloneCheck: ${{ inputs.disableShallowCloneCheck }}
+        configFilePath: ${{ inputs.configFilePath }}
+        overrideConfig: ${{ inputs.overrideConfig }}
+        updateAssemblyInfo: ${{ inputs.updateAssemblyInfo }}
+        updateAssemblyInfoFilename: ${{ inputs.updateAssemblyInfoFilename }}
+        updateProjectFiles: ${{ inputs.updateProjectFiles }}
