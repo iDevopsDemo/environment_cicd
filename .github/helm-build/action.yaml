@@ -12,6 +12,9 @@ inputs:
     description: 'Path to run GitVersion against'
     required: false
     default: '.'
+  GITVERSION_CONFIG_FILE:
+    description: 'Path to GitVersion configuration file'
+    required: false
 outputs:
   build-version:
     description: "Build version"
@@ -38,6 +41,7 @@ runs:
       uses: iDevopsDemo/environment_cicd/.github/gitversion@main
       with:
         targetPath: ${{ inputs.GITVERSION_TARGET_PATH }}
+        configFilePath: ${{ inputs.GITVERSION_CONFIG_FILE }}
    
     - name: Update Chart.yaml and values.yaml versions
       run: |
