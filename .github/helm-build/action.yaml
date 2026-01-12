@@ -75,7 +75,7 @@ runs:
         CHART_NAME=$(yq e '.name' ${{ inputs.CHART_DIR }}/Chart.yaml)
 
         # Package the chart with coordinated version
-        helm package ${{ inputs.CHART_DIR }}/ --version $VERSION --app-version $VERSION
+        helm package -u ${{ inputs.CHART_DIR }}/ --version $VERSION --app-version $VERSION
 
         # Push versioned chart to GHCR as OCI artifact
         helm push $CHART_NAME-$VERSION.tgz oci://ghcr.io/${{ steps.repo-name-lowercase.outputs.lowercase }}/charts
