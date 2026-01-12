@@ -144,5 +144,5 @@ runs:
     - name: Prepare Docker Tag Output
       id: docker_tag_step
       run: |
-        echo "fullSemVerDocker=$(echo ${{ steps.version_step.outputs.semVer }} | sed 's/+/-/g')" >> "$GITHUB_OUTPUT"
+        echo "fullSemVerDocker=$(echo ${{ steps.version_step.outputs.fullSemVer }} | sed 's/+/-/g')" >> "$GITHUB_OUTPUT"
       shell: bash
